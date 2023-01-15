@@ -5,9 +5,19 @@ import os
 import classes
 import config
 
+from pathlib import Path
+
 
 def create_valid_text(str):
-    result = str.replace('   ', '\n')
+    result = str.strip()
+    result = result.replace('  ', '\n')
+    result = result.replace('’', '\'')
+    result = result.replace('\u2013', '-')
+    result = result.replace('\u2014', '-')
+    result = result.replace('\u2018', '\'')
+    result = result.replace('\u201c', '"')
+    result = result.replace('\u201d', '"')
+    result = result.replace('\u2026', '...')
     return result.replace(' .', '.')
 
 
@@ -36,8 +46,8 @@ def scrap_feats(print_all_keys=False):
     keys = []
     for f in feats_arr_original:
         new_feat = classes.Feat()
-        new_feat.name = f['_source']['name']
-        new_feat.src = f['_source']['source'][0]
+        new_feat.name = create_valid_text(f['_source']['name'])
+        new_feat.src = create_valid_text(f['_source']['source'][0])
         new_feat.page = f['_source']['source_raw'][0].split('pg.')[1]
         new_feat.src_raw = f['_source']['source_raw']
         new_feat.src_category = f['_source']['source_category']
@@ -45,8 +55,8 @@ def scrap_feats(print_all_keys=False):
             new_feat.pfs = f['_source']['pfs']
         new_feat.rarity = f['_source']['rarity']
         new_feat.level = f['_source']['level']
-        new_feat.summary = create_valid_text(f['_source']['summary'].strip())
-        new_feat.text_original = create_valid_text(f['_source']['text'].strip())
+        new_feat.summary = create_valid_text(f['_source']['summary'])
+        new_feat.text_original = create_valid_text(f['_source']['text'])
         new_feat.text = remove_first_line(create_valid_text(f['_source']['text'].strip()))
         new_feat.trait = f['_source']['trait']
         new_feat.resistance = f['_source']['resistance']
@@ -55,15 +65,15 @@ def scrap_feats(print_all_keys=False):
         if 'actions' in f['_source']:
             new_feat.actions = f['_source']['actions']
         if 'frequency' in f['_source']:
-            new_feat.frequency = f['_source']['frequency']
+            new_feat.frequency = create_valid_text(f['_source']['frequency'])
         if 'trigger' in f['_source']:
-            new_feat.trigger = f['_source']['trigger']
+            new_feat.trigger = create_valid_text(f['_source']['trigger'])
         if 'skill' in f['_source']:
             new_feat.skill = f['_source']['skill']
         if 'archetype' in f['_source']:
             new_feat.archetype = f['_source']['archetype']
         if 'requirement' in f['_source']:
-            new_feat.requirement = f['_source']['requirement']
+            new_feat.requirement = create_valid_text(f['_source']['requirement'])
         if 'school' in f['_source']:
             new_feat.school = f['_source']['school']
         if 'cost' in f['_source']:
@@ -90,6 +100,45 @@ def scrap_feats(print_all_keys=False):
     with open(filename, "w", encoding="utf-16") as file:
         file.write(json.dumps(feats_arr, cls=classes.Encoder, indent=4))
         file.close()
+
+
+def check_pf2etools():
+    results = requests.post(config.url, json=config.post_data_get_feats, headers=config.headers)
+
+    data = json.loads(results.text)
+    feats_arr_original = data['hits']['hits']
+    feat_names = []
+    for f in feats_arr_original:
+        name = create_valid_text(f['_source']['name']).lower()
+        if name.__contains__(" ("):
+            name = name.split(" (")[0]
+        if name not in feat_names:
+            feat_names.append(name)
+
+    tool_feat_names = []
+
+    for p in Path('./pf2etools/').glob('*.json'):
+        tools_data = json.loads(p.read_text())
+        for feat in tools_data['feat']:
+            name = feat['name'].lower()
+            tool_feat_names.append(name)
+
+    feat_names.sort()
+    tool_feat_names.sort()
+
+    for x in feat_names:
+        if x not in tool_feat_names:
+            print(x)
+
+    print("---------------------------------------------------------------------------------------------------")
+
+
+
+    for x in feat_names:
+        print(x)
+    print("---------------------------------------------------------------------------------------------------")
+    for x in tool_feat_names:
+        print(x)
 
 
 if __name__ == '__main__':

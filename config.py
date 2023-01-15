@@ -6,5 +6,4 @@ url = 'https://2e.aonprd.com:9200/aon/_search?track_total_hits=true'
 headers = {"Content-Type": "application/json; charset=UTF-16"}
 
 post_data_get_feats = {"size": 4000, "query": {"bool": {"filter": [
-    {"query_string": {"query": "category:feat ",
-                      "default_operator": "AND", "fields": ["name", "text^0.1", "trait_raw", "type"]}}]}}}
+    {"query_string": {"query": "category:feat "}}]}}}
