@@ -16,6 +16,7 @@ class Feat:
         self.level = ""
         self.summary = ""
         self.text = ""
+        self.text_original = ""
         self.trait = []
         self.resistance = []
         self.speed = []

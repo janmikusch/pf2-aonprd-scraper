@@ -5,9 +5,18 @@ import os
 import classes
 import config
 
+
 def create_valid_text(str):
     result = str.replace('   ', '\n')
     return result.replace(' .', '.')
+
+
+def remove_first_line(str):
+    result = str.split('\n\n', 1)
+    if len(result) == 1:
+        return str
+    else:
+        return result[1]
 
 
 def scrap_feats(print_all_keys=False):
@@ -37,7 +46,8 @@ def scrap_feats(print_all_keys=False):
         new_feat.rarity = f['_source']['rarity']
         new_feat.level = f['_source']['level']
         new_feat.summary = create_valid_text(f['_source']['summary'].strip())
-        new_feat.text = create_valid_text(f['_source']['text'].strip())
+        new_feat.text_original = create_valid_text(f['_source']['text'].strip())
+        new_feat.text = remove_first_line(create_valid_text(f['_source']['text'].strip()))
         new_feat.trait = f['_source']['trait']
         new_feat.resistance = f['_source']['resistance']
         new_feat.speed = f['_source']['speed']
